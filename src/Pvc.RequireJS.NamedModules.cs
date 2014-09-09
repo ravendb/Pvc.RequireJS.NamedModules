@@ -56,13 +56,13 @@ namespace PvcPlugins
 
         public override IEnumerable<PvcStream> Execute(IEnumerable<PvcStream> inputStreams)
         {
-            var typeScriptEmittedClasses = inputStreams
+            var anonymousModule = inputStreams
                 .Where(s => this.IsAnonymousModule(s))
                 .ToList();
 
             return inputStreams
-                .Except(typeScriptEmittedClasses)
-                .Concat(typeScriptEmittedClasses.Select(s => this.ConvertToNamedModule(s)))
+                .Except(anonymousModule)
+                .Concat(anonymousModule.Select(s => this.ConvertToNamedModule(s)))
                 .ToList();
         }
 
@@ -77,9 +77,9 @@ namespace PvcPlugins
                 
                 if (originalContents != newContents)
                 {
-                    stream.UnloadStream();
-                    File.WriteAllText(stream.OriginalSourcePath, newContents);
-                    return PvcUtil.PathToStream(stream.OriginalSourcePath);
+                    var newStream = PvcUtil.StringToStream(newContents, stream.StreamName);
+                    newStream.ResetStreamPosition();
+                    return newStream;
                 }
                 
                 return stream;
